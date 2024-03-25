@@ -35,3 +35,5 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/metrumresearchgroup/gogridengine v0.0.2 => github.com/broadinstitute/gogridengine v0.0.0-20240328210953-ee662e4df12f
