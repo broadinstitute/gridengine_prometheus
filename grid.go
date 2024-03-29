@@ -34,6 +34,8 @@ func NewGridEngine() *GridEngine {
 	hostLabels := []string{
 		"hostname",
 		"queue",
+		"qtype",
+		"state",
 	}
 
 	jobLabels := []string{
@@ -152,11 +154,12 @@ func (collector *GridEngine) Collect(ch chan<- prometheus.Metric) {
 		pieces := strings.Split(ql.Name, "@")
 		queue := pieces[0]
 		hostname := pieces[1]
-
-		ch <- prometheus.MustNewConstMetric(collector.UsedSlots, prometheus.GaugeValue, float64(ql.SlotsUsed), hostname, queue)
-		ch <- prometheus.MustNewConstMetric(collector.ReservedSlots, prometheus.GaugeValue, float64(ql.SlotsReserved), hostname, queue)
-		ch <- prometheus.MustNewConstMetric(collector.TotalSlots, prometheus.GaugeValue, float64(ql.SlotsTotal), hostname, queue)
-		ch <- prometheus.MustNewConstMetric(collector.LoadAverage, prometheus.GaugeValue, ql.LoadAverage, hostname, queue)
+		qtype := ql.QType
+		state := ql.State
+		ch <- prometheus.MustNewConstMetric(collector.UsedSlots, prometheus.GaugeValue, float64(ql.SlotsUsed), hostname, queue, qtype, state)
+		ch <- prometheus.MustNewConstMetric(collector.ReservedSlots, prometheus.GaugeValue, float64(ql.SlotsReserved), hostname, queue, qtype, state)
+		ch <- prometheus.MustNewConstMetric(collector.TotalSlots, prometheus.GaugeValue, float64(ql.SlotsTotal), hostname, queue, qtype, state)
+		ch <- prometheus.MustNewConstMetric(collector.LoadAverage, prometheus.GaugeValue, ql.LoadAverage, hostname, queue, qtype, state)
 
 		FreeMemory, err := ql.Resources.FreeMemory()
 
@@ -167,7 +170,7 @@ func (collector *GridEngine) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 
-		ch <- prometheus.MustNewConstMetric(collector.FreeMemory, prometheus.GaugeValue, float64(FreeMemory.Bytes), hostname, queue)
+		ch <- prometheus.MustNewConstMetric(collector.FreeMemory, prometheus.GaugeValue, float64(FreeMemory.Bytes), hostname, queue, qtype, state)
 
 		UsedMemory, err := ql.Resources.MemoryUsed()
 
@@ -178,7 +181,7 @@ func (collector *GridEngine) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 
-		ch <- prometheus.MustNewConstMetric(collector.UsedMemory, prometheus.GaugeValue, float64(UsedMemory.Bytes), hostname, queue)
+		ch <- prometheus.MustNewConstMetric(collector.UsedMemory, prometheus.GaugeValue, float64(UsedMemory.Bytes), hostname, queue, qtype, state)
 
 		TotalMemory, err := ql.Resources.TotalMemory()
 
@@ -189,7 +192,7 @@ func (collector *GridEngine) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 
-		ch <- prometheus.MustNewConstMetric(collector.TotalMemory, prometheus.GaugeValue, float64(TotalMemory.Bytes), hostname, queue)
+		ch <- prometheus.MustNewConstMetric(collector.TotalMemory, prometheus.GaugeValue, float64(TotalMemory.Bytes), hostname, queue, qtype, state)
 
 		CPUUtilization, err := ql.Resources.CPU()
 
@@ -198,7 +201,7 @@ func (collector *GridEngine) Collect(ch chan<- prometheus.Metric) {
 			CPUUtilization = 0
 		}
 
-		ch <- prometheus.MustNewConstMetric(collector.CPUUtilization, prometheus.GaugeValue, CPUUtilization, hostname, queue)
+		ch <- prometheus.MustNewConstMetric(collector.CPUUtilization, prometheus.GaugeValue, CPUUtilization, hostname, queue, qtype, state)
 
 		//Iterate over Running Jobs
 		for _, j := range ql.JobList {
